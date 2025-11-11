@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio Interactivo de Lentes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: La aplicación está diseñada como una experiencia de aprendizaje de una sola página con desplazamiento vertical, dividida en cuatro secciones temáticas clave: 1) Introducción, 2) Tipos de Lentes, 3) Laboratorio Interactivo y 4) Aplicaciones. Se eligió esta estructura para guiar al usuario desde los conceptos básicos hasta la experimentación práctica y las aplicaciones del mundo real de una manera lógica y fluida. La navegación superior permite el acceso directo a cada sección, fomentando tanto el aprendizaje lineal como la exploración libre. El laboratorio interactivo es el núcleo, permitiendo a los usuarios manipular variables y ver resultados en tiempo real, lo cual es mucho más efectivo para la comprensión que los diagramas estáticos. -->
+    <!-- Visualization & Content Choices: 1. Introducción: Se usa texto simple y un diagrama HTML/CSS para explicar la refracción (Meta: Informar). 2. Tipos de Lentes: Se comparan lentes convergentes y divergentes lado a lado usando dos gráficos de Chart.js que muestran el camino de los rayos de forma estática (Meta: Comparar). Esto ofrece una visualización clara y directa. 3. Laboratorio Interactivo: Un gráfico dinámico de Chart.js con un control deslizante permite a los usuarios mover un objeto y ver cómo se forma la imagen en tiempo real, con descripciones textuales que se actualizan automáticamente (Meta: Explorar/Experimentar). Esta es la forma más efectiva de enseñar el trazado de rayos y las propiedades de la imagen (real/virtual, invertida/recta, tamaño). 4. Aplicaciones: Se utiliza un diseño de tarjetas interactivas (HTML/CSS/JS) que revelan información al hacer clic (Meta: Organizar/Informar), presentando ejemplos del mundo real de manera concisa y atractiva. Se usa Chart.js (Canvas) para todas las visualizaciones complejas. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #333;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #3B82F6;
+            border-bottom-color: #3B82F6;
+        }
+        .card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 40vh;
+        }
+        .control-panel {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-600">Física de Lentes</h1>
+            <div class="hidden md:flex space-x-8">
+                <a href="#intro" class="nav-link text-gray-600 font-medium pb-1">Introducción</a>
+                <a href="#types" class="nav-link text-gray-600 font-medium pb-1">Tipos de Lentes</a>
+                <a href="#lab" class="nav-link text-gray-600 font-medium pb-1">Laboratorio</a>
+                <a href="#apps" class="nav-link text-gray-600 font-medium pb-1">Aplicaciones</a>
+            </div>
+             <div class="md:hidden">
+                <select id="mobile-nav" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <option value="#intro">Introducción</option>
+                    <option value="#types">Tipos de Lentes</option>
+                    <option value="#lab">Laboratorio</option>
+                    <option value="#apps">Aplicaciones</option>
+                </select>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="intro" class="py-20 bg-white">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-4xl font-bold mb-4 text-gray-800">El Fascinante Mundo de las Lentes</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600 mb-12">
+                    Desde las gafas que usamos hasta los telescopios que exploran el universo, las lentes son fundamentales en nuestra vida. Son piezas de material transparente que utilizan el fenómeno de la refracción para cambiar la dirección de la luz y formar imágenes.
+                </p>
+                <div class="bg-gray-100 p-8 rounded-lg max-w-2xl mx-auto border border-gray-200">
+                    <h3 class="text-2xl font-bold mb-4 text-gray-700">¿Qué es la Refracción?</h3>
+                    <p class="text-gray-600 mb-6">La refracción es el cambio de dirección que experimenta una onda de luz al pasar de un medio a otro (por ejemplo, del aire al vidrio de una lente). Este simple principio es la magia detrás de todo lo que hacen las lentes.</p>
+                    <div class="flex items-center justify-center h-40 bg-blue-50 border-2 border-dashed border-blue-200 rounded-lg">
+                        <div class="relative w-full h-full flex items-center justify-center">
+                           <div class="absolute h-px w-full bg-blue-300 top-1/2"></div>
+                           <div class="w-1/2 h-full flex items-center pl-4">
+                               <div class="w-full h-1 bg-red-500 transform -rotate-6 origin-right"></div>
+                           </div>
+                           <div class="w-px h-full bg-blue-300 absolute left-1/2"></div>
+                           <div class="w-1/2 h-full flex items-center pr-4">
+                               <div class="w-full h-1 bg-red-500 transform rotate-3 origin-left"></div>
+                           </div>
+                           <div class="absolute text-sm text-blue-500 top-4 left-1/4">Aire</div>
+                           <div class="absolute text-sm text-blue-500 top-4 right-1/4">Lente (Vidrio)</div>
+                           <div class="absolute text-sm text-red-600 bottom-12 left-10">Rayo de luz</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="types" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold mb-4 text-gray-800">Dos Tipos Fundamentales de Lentes</h2>
+                    <p class="max-w-3xl mx-auto text-lg text-gray-600">
+                        Las lentes se clasifican principalmente en dos categorías según su forma y cómo afectan a la luz: convergentes y divergentes.
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-12 items-start">
+                    <div class="bg-white p-8 rounded-lg shadow-md border border-gray-200">
+                        <h3 class="text-2xl font-bold text-center mb-4 text-blue-600">Lentes Convergentes (Convexas)</h3>
+                        <p class="text-gray-600 mb-6 text-center">Son más gruesas en el centro. Unen (convergen) los rayos de luz paralelos en un único punto llamado foco. Se usan para corregir la hipermetropía y como lupas.</p>
+                        <div class="chart-container">
+                            <canvas id="convergentChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-md border border-gray-200">
+                        <h3 class="text-2xl font-bold text-center mb-4 text-green-600">Lentes Divergentes (Cóncavas)</h3>
+                        <p class="text-gray-600 mb-6 text-center">Son más delgadas en el centro. Separan (divergen) los rayos de luz paralelos, haciendo que parezca que provienen de un punto focal. Se usan para corregir la miopía.</p>
+                        <div class="chart-container">
+                            <canvas id="divergentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="lab" class="py-20 bg-gray-100">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold mb-4 text-gray-800">Laboratorio Interactivo: Formación de Imágenes</h2>
+                    <p class="max-w-3xl mx-auto text-lg text-gray-600">
+                        ¡Experimenta tú mismo! Mueve el objeto usando el control deslizante y observa cómo cambia la imagen formada por una lente convergente. Fíjate en el tamaño, la orientación y la posición de la imagen.
+                    </p>
+                </div>
+                <div class="grid lg:grid-cols-3 gap-8 items-center">
+                    <div class="lg:col-span-2 bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                        <div class="chart-container h-[450px] max-h-[60vh]">
+                            <canvas id="interactiveLabChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="control-panel">
+                        <h3 class="text-xl font-bold mb-4 text-gray-700">Panel de Control</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <label for="objectPosition" class="block text-sm font-medium text-gray-700 mb-2">Posición del Objeto (cm)</label>
+                                <input type="range" id="objectPosition" min="1" max="25" value="15" step="0.1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                    <span>Cerca (1)</span>
+                                    <span id="objectPositionLabel" class="font-bold text-blue-600">15.0 cm</span>
+                                    <span>Lejos (25)</span>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-700 mb-2">Características de la Imagen:</p>
+                                <div id="imageDescription" class="bg-blue-50 border border-blue-200 p-4 rounded-md space-y-2 text-sm">
+                                    <p><strong>Tipo:</strong> <span id="imageType" class="font-mono">Real</span></p>
+                                    <p><strong>Orientación:</strong> <span id="imageOrientation" class="font-mono">Invertida</span></p>
+                                    <p><strong>Tamaño:</strong> <span id="imageSize" class="font-mono">Reducida</span></p>
+                                    <p><strong>Posición:</strong> <span id="imagePosition" class="font-mono">10.0 cm</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="apps" class="py-20">
+            <div class="container mx-auto px-6">
+                 <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold mb-4 text-gray-800">Aplicaciones en el Mundo Real</h2>
+                    <p class="max-w-3xl mx-auto text-lg text-gray-600">
+                       Las lentes están en todas partes. Haz clic en cada tarjeta para descubrir cómo funcionan en algunos de los objetos más comunes e importantes de nuestra tecnología.
+                    </p>
+                </div>
+                <div id="apps-container" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p>Juan Jose Gomez Ramirez</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const smoothScroll = (targetId) => {
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80, 
+                        behavior: 'smooth'
+                    });
+                }
+            };
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    smoothScroll(this.getAttribute('href'));
+                });
+            });
+
+            document.getElementById('mobile-nav').addEventListener('change', function(e) {
+                smoothScroll(e.target.value);
+            });
+
+
+            const chartOptions = {
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        min: -25,
+                        max: 25,
+                        grid: { color: '#e5e7eb' },
+                        title: { display: true, text: 'Eje Óptico (cm)' }
+                    },
+                    y: {
+                        min: -15,
+                        max: 15,
+                        grid: { display: false },
+                        ticks: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                },
+                animation: {
+                    duration: 0
+                }
+            };
+
+            const drawLens = (isConvergent) => {
+                const lensHeight = 12;
+                const lensWidth = 1;
+                const points = isConvergent ?
+                    [
+                        { x: 0, y: lensHeight }, { x: -lensWidth, y: lensHeight * 0.5 }, { x: -lensWidth, y: -lensHeight * 0.5 },
+                        { x: 0, y: -lensHeight }, { x: lensWidth, y: -lensHeight * 0.5 }, { x: lensWidth, y: lensHeight * 0.5 }, { x: 0, y: lensHeight }
+                    ] :
+                    [
+                        { x: -lensWidth, y: lensHeight }, { x: 0, y: lensHeight * 0.8 }, { x: lensWidth, y: lensHeight },
+                        { x: lensWidth, y: -lensHeight }, { x: 0, y: -lensHeight * 0.8 }, { x: -lensWidth, y: -lensHeight }, { x: -lensWidth, y: lensHeight }
+                    ];
+                return {
+                    type: 'line',
+                    data: points,
+                    borderColor: 'rgba(59, 130, 246, 0.5)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0
+                };
+            };
+            
+            const focalPoint = (x, y) => ({
+                type: 'scatter',
+                data: [{ x: x, y: y }],
+                pointBackgroundColor: 'red',
+                pointRadius: 5,
+                pointStyle: 'crossRot',
+            });
+
+
+            new Chart(document.getElementById('convergentChart'), {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        drawLens(true),
+                        focalPoint(5,0),
+                        focalPoint(-5,0),
+                        { type: 'line', data: [{x: -25, y: 5}, {x: 0, y: 5}, {x: 5, y: 0}, {x:10, y:-5}], borderColor: 'orange', borderWidth: 1.5, fill: false, pointRadius: 0 },
+                        { type: 'line', data: [{x: -25, y: 2}, {x: 0, y: 2}, {x: 5, y: 0}, {x:10, y:-2}], borderColor: 'orange', borderWidth: 1.5, fill: false, pointRadius: 0 },
+                        { type: 'line', data: [{x: -25, y: -3}, {x: 0, y: -3}, {x: 5, y: 0}, {x:10, y:3}], borderColor: 'orange', borderWidth: 1.5, fill: false, pointRadius: 0 },
+                    ]
+                },
+                options: chartOptions
+            });
+
+            new Chart(document.getElementById('divergentChart'), {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        drawLens(false),
+                         focalPoint(5,0),
+                        focalPoint(-5,0),
+                        { type: 'line', data: [{x: -25, y: 5}, {x: 0, y: 5}, {x: 10, y: 9}], borderColor: 'orange', borderWidth: 1.5, fill: false, pointRadius: 0 },
+                        { type: 'line', data: [{x: -5, y: 0}, {x: 0, y: 5}], borderDash: [5, 5], borderColor: 'gray', borderWidth: 1, fill: false, pointRadius: 0 },
+                        { type: 'line', data: [{x: -25, y: 0}, {x: 10, y: 0}], borderColor: 'orange', borderWidth: 1.5, fill: false, pointRadius: 0 },
+                        { type: 'line', data: [{x: -25, y: -5}, {x: 0, y: -5}, {x: 10, y: -9}], borderColor: 'orange', borderWidth: 1.5, fill: false, pointRadius: 0 },
+                        { type: 'line', data: [{x: -5, y: 0}, {x: 0, y: -5}], borderDash: [5, 5], borderColor: 'gray', borderWidth: 1, fill: false, pointRadius: 0 },
+                    ]
+                },
+                options: chartOptions
+            });
+
+            const labSlider = document.getElementById('objectPosition');
+            const labChartCtx = document.getElementById('interactiveLabChart');
+            const focalLength = 5;
+            const objectHeight = 5;
+
+            const labChart = new Chart(labChartCtx, {
+                type: 'scatter',
+                data: { datasets: [] },
+                options: chartOptions
+            });
+
+            function updateInteractiveLab() {
+                const objectDist = parseFloat(labSlider.value);
+                document.getElementById('objectPositionLabel').textContent = `${objectDist.toFixed(1)} cm`;
+
+                let imageDist, imageHeight;
+                if (objectDist === focalLength) {
+                    imageDist = Infinity;
+                    imageHeight = Infinity;
+                } else {
+                    imageDist = 1 / (1 / focalLength - 1 / objectDist);
+                    imageHeight = (-imageDist / objectDist) * objectHeight;
+                }
+
+                const object = {
+                    type: 'line',
+                    data: [{ x: -objectDist, y: 0 }, { x: -objectDist, y: objectHeight }],
+                    borderColor: '#1E40AF', borderWidth: 3
+                };
+
+                const image = {
+                    type: 'line',
+                    data: (isFinite(imageDist) ? [{ x: imageDist, y: 0 }, { x: imageDist, y: imageHeight }] : []),
+                    borderColor: '#BE123C', borderWidth: 3
+                };
+
+                const ray1 = [
+                    { x: -objectDist, y: objectHeight }, { x: 0, y: objectHeight },
+                    ...(isFinite(imageDist) ? [{ x: imageDist, y: imageHeight }] : [{x: focalLength, y:0}, {x:25, y: objectHeight * (25-focalLength)/focalLength * -1}])
+                ];
+                
+                const ray2 = [
+                    { x: -objectDist, y: objectHeight }, { x: 0, y: 0 },
+                     ...(isFinite(imageDist) ? [{ x: imageDist, y: imageHeight }] : [{x:25, y: -objectHeight*25/objectDist}])
+                ];
+
+                const ray3_obj_dist_is_f = objectDist === focalLength;
+                const ray3 = [
+                    { x: -objectDist, y: objectHeight }, 
+                    ...(ray3_obj_dist_is_f ? [{x: 0, y: objectHeight}] : [{ x: -focalLength, y: 0 }, { x: 0, y: objectHeight * objectDist / (objectDist - focalLength) }]),
+                    { x: 25, y: objectHeight * objectDist / (objectDist - focalLength) }
+                ];
+                
+                const ray1Data = {type: 'line', data: ray1, borderColor: 'rgba(234, 179, 8, 0.7)', borderWidth: 1.5, fill: false, pointRadius: 0};
+                const ray2Data = {type: 'line', data: ray2, borderColor: 'rgba(34, 197, 94, 0.7)', borderWidth: 1.5, fill: false, pointRadius: 0};
+                const ray3Data = {type: 'line', data: ray3, borderColor: 'rgba(219, 39, 119, 0.7)', borderWidth: 1.5, fill: false, pointRadius: 0};
+
+
+                labChart.data.datasets = [
+                    drawLens(true),
+                    focalPoint(focalLength, 0),
+                    focalPoint(-focalLength, 0),
+                    object,
+                    image,
+                    ray1Data, ray2Data, ray3Data
+                ];
+                
+                if (imageDist < 0) {
+                     const virtualRay1 = {type: 'line', data: [{x:0, y: objectHeight}, {x: imageDist, y: imageHeight}], borderDash: [5,5], borderColor: 'rgba(234, 179, 8, 0.5)', borderWidth: 1, fill: false, pointRadius: 0};
+                      const virtualRay2 = {type: 'line', data: [{x:0, y: 0}, {x: imageDist, y: imageHeight}], borderDash: [5,5], borderColor: 'rgba(34, 197, 94, 0.5)', borderWidth: 1, fill: false, pointRadius: 0};
+                     labChart.data.datasets.push(virtualRay1, virtualRay2);
+                }
+
+
+                labChart.update();
+
+                document.getElementById('imageType').textContent = isFinite(imageDist) ? (imageDist > 0 ? 'Real' : 'Virtual') : '-';
+                document.getElementById('imageOrientation').textContent = isFinite(imageHeight) ? (imageHeight < 0 ? 'Invertida' : 'Recta') : '-';
+                document.getElementById('imageSize').textContent = isFinite(imageHeight) ? (Math.abs(imageHeight) > objectHeight ? 'Aumentada' : (Math.abs(imageHeight) < objectHeight ? 'Reducida' : 'Igual')) : '-';
+                document.getElementById('imagePosition').textContent = isFinite(imageDist) ? `${imageDist.toFixed(1)} cm` : 'Infinito';
+            }
+
+            labSlider.addEventListener('input', updateInteractiveLab);
+            updateInteractiveLab();
+
+            const appsData = [
+                 {
+                    title: "El Ojo Humano",
+                    icon: "👁️",
+                    description: "El cristalino de nuestro ojo es una lente convergente que enfoca la luz en la retina. La miopía ocurre cuando el foco está delante de la retina, y la hipermetropía cuando está detrás. Las gafas usan lentes para corregir este punto de enfoque."
+                },
+                {
+                    title: "Cámara Fotográfica",
+                    icon: "📷",
+                    description: "Una cámara usa un sistema de lentes convergentes (el objetivo) para proyectar una imagen real, invertida y reducida sobre un sensor digital. El enfoque se ajusta moviendo las lentes para cambiar la distancia al sensor."
+                },
+                {
+                    title: "Telescopio",
+                    icon: "🔭",
+                    description: "Un telescopio refractor simple usa dos lentes convergentes: el objetivo, que recoge la luz de objetos lejanos, y el ocular, que actúa como una lupa para ampliar la imagen formada por el objetivo, permitiéndonos ver astros distantes."
+                },
+                 {
+                    title: "Microscopio",
+                    icon: "🔬",
+                    description: "Similar a un telescopio, un microscopio usa un objetivo y un ocular. El objetivo es una lente convergente de distancia focal muy corta que crea una imagen real y muy aumentada del objeto cercano. El ocular amplía aún más esta imagen."
+                },
+                {
+                    title: "Proyector",
+                    icon: "📽️",
+                    description: "Un proyector funciona como una cámara a la inversa. Utiliza una potente lente convergente para tomar una pequeña imagen (de una pantalla o chip) y proyectar una imagen real, invertida (por eso el original se pone al revés) y muy aumentada sobre una pantalla lejana."
+                },
+                 {
+                    title: "Lupa",
+                    icon: "🔍",
+                    description: "Una lupa es simplemente una lente convergente. Cuando colocamos un objeto dentro de su distancia focal, la lente crea una imagen virtual, recta y aumentada, lo que nos permite ver los detalles pequeños con mayor claridad."
+                }
+            ];
+
+            const appsContainer = document.getElementById('apps-container');
+            appsData.forEach(app => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer card';
+                card.innerHTML = `
+                    <div class="p-6">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <span class="text-4xl">${app.icon}</span>
+                            <h3 class="text-xl font-bold text-gray-800">${app.title}</h3>
+                        </div>
+                        <p class="text-gray-600 description hidden">${app.description}</p>
+                    </div>
+                `;
+                appsContainer.appendChild(card);
+
+                card.addEventListener('click', () => {
+                   card.querySelector('.description').classList.toggle('hidden');
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
